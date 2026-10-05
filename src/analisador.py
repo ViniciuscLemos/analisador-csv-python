@@ -1,9 +1,3 @@
-"""
-Módulo de análise e geração de relatório
-==========================================
-Executa queries SQL para calcular estatísticas e salva o relatório em arquivo.
-"""
-
 import json
 import sqlite3
 from datetime import datetime
@@ -12,34 +6,23 @@ MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "
 
 
 def formatar_moeda(valor: float) -> str:
-    """
-    Formata no padrão brasileiro: 1234.5 → 'R$ 1.234,50'.
-
-    O Python formata com vírgula para milhar e ponto para decimal (padrão
-    americano), então trocamos os dois separadores.
-    """
+    # 1234.5 -> "R$ 1.234,50" (troca os separadores do formato americano)
     texto = f"{valor:,.2f}".replace(",", "_").replace(".", ",").replace("_", ".")
     return f"R$ {texto}"
 
 
 def _titulo(texto: str) -> str:
-    """Formata um título de seção."""
     linha = "-" * 55
     return f"\n{linha}\n  {texto}\n{linha}"
 
 
-def calcular_estatisticas(conn: sqlite3.Connection) -> dict:
-    """
-    Executa todas as consultas e devolve os resultados em um dicionário.
+def _linhas(cursor, campos):
+    return [dict(zip(campos, r)) for r in cursor.fetchall()]
 
-    Separar o cálculo da formatação permite testar os números e
-    exportar o mesmo resultado em texto ou JSON.
-    """
+
+def calcular_estatisticas(conn: sqlite3.Connection) -> dict:
     cursor = conn.cursor()
 
-    # -------------------------------------------------------
-    # 1. Resumo geral
-    # -------------------------------------------------------
     cursor.execute("""
         SELECT
             COUNT(*)                    AS total_vendas,
@@ -54,73 +37,50 @@ def calcular_estatisticas(conn: sqlite3.Connection) -> dict:
     colunas = [c[0] for c in cursor.description]
     resumo = dict(zip(colunas, cursor.fetchone()))
 
-    # -------------------------------------------------------
-    # 2. Vendas por categoria (GROUP BY + ORDER BY)
-    # -------------------------------------------------------
     cursor.execute("""
-        SELECT
-            categoria,
-            COUNT(*)        AS vendas,
-            SUM(total)      AS receita,
-            AVG(preco)      AS preco_medio
+        SELECT categoria, COUNT(*), SUM(total), AVG(preco)
         FROM vendas
         GROUP BY categoria
-        ORDER BY receita DESC
+        ORDER BY SUM(total) DESC
     """)
-    categorias = [dict(zip(("categoria", "vendas", "receita", "preco_medio"), r)) for r in cursor.fetchall()]
+    categorias = _linhas(cursor, ("categoria", "vendas", "receita", "preco_medio"))
 
-    # -------------------------------------------------------
-    # 3. Top 5 produtos mais vendidos
-    # -------------------------------------------------------
     cursor.execute("""
-        SELECT
-            produto,
-            SUM(quantidade) AS unidades,
-            SUM(total)      AS receita
+        SELECT produto, SUM(quantidade) AS unidades, SUM(total) AS receita
         FROM vendas
         GROUP BY produto
         ORDER BY unidades DESC, receita DESC
         LIMIT 5
     """)
-    produtos = [dict(zip(("produto", "unidades", "receita"), r)) for r in cursor.fetchall()]
+    produtos = _linhas(cursor, ("produto", "unidades", "receita"))
 
-    # -------------------------------------------------------
-    # 4. Desempenho por vendedor, com participação na receita
-    #    (subquery para calcular o percentual)
-    # -------------------------------------------------------
     cursor.execute("""
         SELECT
             vendedor,
-            COUNT(*)        AS vendas,
-            SUM(total)      AS receita,
-            100.0 * SUM(total) / (SELECT SUM(total) FROM vendas) AS participacao
+            COUNT(*),
+            SUM(total) AS receita,
+            100.0 * SUM(total) / (SELECT SUM(total) FROM vendas)
         FROM vendas
         GROUP BY vendedor
         ORDER BY receita DESC
     """)
-    vendedores = [dict(zip(("vendedor", "vendas", "receita", "participacao"), r)) for r in cursor.fetchall()]
+    vendedores = _linhas(cursor, ("vendedor", "vendas", "receita", "participacao"))
 
-    # -------------------------------------------------------
-    # 5. Vendas por região
-    # -------------------------------------------------------
     cursor.execute("""
-        SELECT regiao, COUNT(*) AS vendas, SUM(total) AS receita
+        SELECT regiao, COUNT(*), SUM(total) AS receita
         FROM vendas
         GROUP BY regiao
         ORDER BY receita DESC
     """)
-    regioes = [dict(zip(("regiao", "vendas", "receita"), r)) for r in cursor.fetchall()]
+    regioes = _linhas(cursor, ("regiao", "vendas", "receita"))
 
-    # -------------------------------------------------------
-    # 6. Evolução mensal (strftime extrai ano-mês da data)
-    # -------------------------------------------------------
     cursor.execute("""
-        SELECT strftime('%Y-%m', data) AS mes, COUNT(*) AS vendas, SUM(total) AS receita
+        SELECT strftime('%Y-%m', data) AS mes, COUNT(*), SUM(total)
         FROM vendas
         GROUP BY mes
         ORDER BY mes
     """)
-    meses = [dict(zip(("mes", "vendas", "receita"), r)) for r in cursor.fetchall()]
+    meses = _linhas(cursor, ("mes", "vendas", "receita"))
 
     return {
         "resumo": resumo,
@@ -133,20 +93,17 @@ def calcular_estatisticas(conn: sqlite3.Connection) -> dict:
 
 
 def _nome_mes(ano_mes: str) -> str:
-    """'2024-03' → 'Mar/2024'"""
     ano, mes = ano_mes.split("-")
     return f"{MESES[int(mes) - 1]}/{ano}"
 
 
 def formatar_relatorio(estatisticas: dict) -> str:
-    """Transforma o dicionário de estatísticas em um relatório de texto."""
-    linhas = []
-
-    # Cabeçalho
-    linhas.append("=" * 55)
-    linhas.append("  RELATÓRIO DE VENDAS")
-    linhas.append(f"  Gerado em: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
-    linhas.append("=" * 55)
+    linhas = [
+        "=" * 55,
+        "  RELATÓRIO DE VENDAS",
+        f"  Gerado em: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}",
+        "=" * 55,
+    ]
 
     resumo = estatisticas["resumo"]
     if resumo["total_vendas"] == 0:
@@ -171,7 +128,7 @@ def formatar_relatorio(estatisticas: dict) -> str:
 
     linhas.append(_titulo("TOP 5 PRODUTOS (por unidades)"))
     for i, p in enumerate(estatisticas["top_produtos"], start=1):
-        linhas.append(f"  {i}. {p['produto']:<26} {p['unidades']:>4} un. — {formatar_moeda(p['receita'])}")
+        linhas.append(f"  {i}. {p['produto']:<26} {p['unidades']:>4} un. - {formatar_moeda(p['receita'])}")
 
     linhas.append(_titulo("RANKING DE VENDEDORES"))
     linhas.append(f"  {'Vendedor':<15} {'Vendas':>7} {'Receita':>16} {'Part.':>7}")
@@ -188,7 +145,6 @@ def formatar_relatorio(estatisticas: dict) -> str:
     linhas.append(_titulo("EVOLUÇÃO MENSAL"))
     maior = max(m["receita"] for m in estatisticas["mensal"])
     for m in estatisticas["mensal"]:
-        # Barra proporcional à receita do melhor mês (gráfico em texto)
         barra = "█" * round(20 * m["receita"] / maior) if maior else ""
         linhas.append(f"  {_nome_mes(m['mes']):<9} {formatar_moeda(m['receita']):>16}  {barra}")
 
@@ -197,10 +153,6 @@ def formatar_relatorio(estatisticas: dict) -> str:
 
 
 def gerar_relatorio(conn: sqlite3.Connection, caminho_saida: str, caminho_json: str | None = None) -> dict:
-    """
-    Calcula as estatísticas, salva o relatório em texto (e opcionalmente
-    em JSON) e o exibe no terminal. Retorna as estatísticas calculadas.
-    """
     estatisticas = calcular_estatisticas(conn)
     conteudo = formatar_relatorio(estatisticas)
 
@@ -211,6 +163,5 @@ def gerar_relatorio(conn: sqlite3.Connection, caminho_saida: str, caminho_json: 
         with open(caminho_json, 'w', encoding='utf-8') as f:
             json.dump(estatisticas, f, ensure_ascii=False, indent=2)
 
-    # Também exibe no terminal
     print(conteudo)
     return estatisticas
