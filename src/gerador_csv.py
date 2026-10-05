@@ -9,14 +9,19 @@ import random
 from datetime import date, timedelta
 
 
-def gerar_csv_exemplo(caminho: str, quantidade: int = 200) -> None:
+def gerar_csv_exemplo(caminho: str, quantidade: int = 200, seed: int | None = None) -> None:
     """
     Gera um arquivo CSV com dados aleatórios de vendas.
 
     Parâmetros:
-        caminho   — onde salvar o arquivo
+        caminho    — onde salvar o arquivo
         quantidade — número de registros a gerar
+        seed       — semente do gerador aleatório; com o mesmo valor,
+                     o CSV gerado é sempre igual (útil para testes)
     """
+    # Usamos uma instância própria de Random para não afetar o random global
+    rng = random.Random(seed)
+
     produtos = {
         "Eletrônicos": [("Notebook", 2500.0), ("Smartphone", 1800.0), ("Fone de Ouvido", 350.0), ("Tablet", 1200.0)],
         "Vestuário":   [("Camiseta", 89.90), ("Calça Jeans", 199.90), ("Tênis", 399.90), ("Jaqueta", 299.90)],
@@ -38,19 +43,19 @@ def gerar_csv_exemplo(caminho: str, quantidade: int = 200) -> None:
         escritor.writeheader()
 
         for _ in range(quantidade):
-            categoria = random.choice(list(produtos.keys()))
-            produto, preco_base = random.choice(produtos[categoria])
+            categoria = rng.choice(list(produtos.keys()))
+            produto, preco_base = rng.choice(produtos[categoria])
 
             # Variação de preço de ±15%
-            preco = round(preco_base * random.uniform(0.85, 1.15), 2)
-            data_venda = data_inicio + timedelta(days=random.randint(0, delta))
+            preco = round(preco_base * rng.uniform(0.85, 1.15), 2)
+            data_venda = data_inicio + timedelta(days=rng.randint(0, delta))
 
             escritor.writerow({
                 'data':       data_venda.strftime('%Y-%m-%d'),
                 'produto':    produto,
                 'categoria':  categoria,
-                'quantidade': random.randint(1, 10),
+                'quantidade': rng.randint(1, 10),
                 'preco':      preco,
-                'vendedor':   random.choice(vendedores),
-                'regiao':     random.choice(regioes),
+                'vendedor':   rng.choice(vendedores),
+                'regiao':     rng.choice(regioes),
             })
