@@ -36,7 +36,7 @@ data,produto,categoria,quantidade,preco,vendedor,regiao
 2024-03-10,Notebook,Eletrônicos,1,2500.00,Ana Lima,Sudeste
 ```
 
-A data precisa estar no formato `AAAA-MM-DD`, e o preço pode ser escrito com ponto ou com vírgula. Se alguma linha estiver errada, o programa pula essa linha e avisa qual foi e por quê.
+A data precisa estar no formato `AAAA-MM-DD`, e o preço pode ser escrito com ponto ou com vírgula. O separador pode ser vírgula ou ponto e vírgula, que é como o Excel em português salva o arquivo. Se alguma linha estiver errada, o programa pula essa linha e avisa qual foi e por quê.
 
 ## Testes
 
