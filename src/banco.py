@@ -78,7 +78,11 @@ def inserir_vendas(conn: sqlite3.Connection, caminho_csv: str) -> ResultadoImpor
 
     # utf-8-sig por causa do BOM que o Excel coloca no começo do arquivo
     with open(caminho_csv, newline='', encoding='utf-8-sig') as arquivo:
-        leitor = csv.DictReader(arquivo)
+        # o Excel em português salva o CSV com ; no lugar da vírgula
+        cabecalho = arquivo.readline()
+        arquivo.seek(0)
+        separador = ";" if cabecalho.count(";") > cabecalho.count(",") else ","
+        leitor = csv.DictReader(arquivo, delimiter=separador)
 
         colunas = {c.strip() for c in (leitor.fieldnames or [])}
         faltando = [c for c in COLUNAS_OBRIGATORIAS if c not in colunas]

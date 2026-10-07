@@ -66,6 +66,16 @@ class TestImportacao(BaseComPasta):
         self.assertEqual(resultado.inseridos, 1)
         self.assertEqual([n for n, _ in resultado.rejeitados], [3, 4, 5, 6])
 
+    def test_csv_com_ponto_e_virgula(self):
+        with open(self.csv, "w", newline="", encoding="utf-8-sig") as f:
+            f.write(";".join(CABECALHO) + "\n")
+            f.write("2024-01-10;Café;Alimentos;2;10,50;Ana;Sul\n")
+        conn = criar_banco(":memory:")
+        resultado = inserir_vendas(conn, self.csv)
+        self.assertEqual(resultado.inseridos, 1)
+        total = conn.execute("SELECT SUM(total) FROM vendas").fetchone()[0]
+        self.assertAlmostEqual(total, 21.0)
+
     def test_colunas_ausentes(self):
         self.escrever_csv([["2024-01-10", "Café"]], cabecalho=["data", "produto"])
         conn = criar_banco(":memory:")
