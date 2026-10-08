@@ -122,6 +122,17 @@ class TestEstatisticas(BaseComPasta):
         self.assertIn("EVOLUÇÃO MENSAL", texto)
         self.assertIn("Jan/2024", texto)
 
+    def test_mes_com_pouca_venda_aparece_no_grafico(self):
+        self.escrever_csv([
+            ["2024-01-10", "Notebook", "Eletrônicos", "1", "5000", "Ana", "Sul"],
+            ["2024-02-10", "Caneta", "Papelaria", "1", "2", "Ana", "Sul"],
+        ])
+        conn = criar_banco(":memory:")
+        inserir_vendas(conn, self.csv)
+        texto = formatar_relatorio(calcular_estatisticas(conn))
+        linha_fev = next(l for l in texto.splitlines() if l.strip().startswith("Fev/2024"))
+        self.assertTrue(linha_fev.endswith("█"))
+
     def test_banco_vazio_nao_quebra(self):
         conn = criar_banco(":memory:")
         texto = formatar_relatorio(calcular_estatisticas(conn))

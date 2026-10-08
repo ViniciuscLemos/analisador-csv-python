@@ -145,7 +145,8 @@ def formatar_relatorio(estatisticas: dict) -> str:
     linhas.append(_titulo("EVOLUÇÃO MENSAL"))
     maior = max(m["receita"] for m in estatisticas["mensal"])
     for m in estatisticas["mensal"]:
-        barra = "█" * round(20 * m["receita"] / maior) if maior else ""
+        # mês com pouca venda ganha pelo menos 1 bloco, senão parece que não vendeu nada
+        barra = "█" * max(1, round(20 * m["receita"] / maior)) if maior and m["receita"] > 0 else ""
         linhas.append(f"  {_nome_mes(m['mes']):<9} {formatar_moeda(m['receita']):>16}  {barra}")
 
     linhas.append("\n" + "=" * 55)
