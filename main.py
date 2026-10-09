@@ -21,6 +21,8 @@ def read_args(argv=None) -> argparse.Namespace:
                         help="folder where the report is saved (default: output/)")
     parser.add_argument("--json", action="store_true",
                         help="also saves the stats to output/report.json")
+    parser.add_argument("--html", action="store_true",
+                        help="also saves a page with charts to output/report.html")
     parser.add_argument("--generate", type=int, metavar="N",
                         help="generates a sample CSV with N sales before analyzing")
     parser.add_argument("--seed", type=int,
@@ -90,10 +92,13 @@ def main(argv=None) -> int:
         print("\n[4/4] Generating the report...")
         report_file = os.path.join(args.output, "report.txt")
         json_file = os.path.join(args.output, "report.json") if args.json else None
-        generate_report(conn, report_file, json_file)
+        html_file = os.path.join(args.output, "report.html") if args.html else None
+        generate_report(conn, report_file, json_file, html_file)
         print(f"      Report saved to: {show(report_file)}")
         if json_file:
             print(f"      JSON saved to: {show(json_file)}")
+        if html_file:
+            print(f"      HTML saved to: {show(html_file)} (open it in the browser)")
     finally:
         conn.close()
 

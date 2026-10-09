@@ -152,7 +152,8 @@ def format_report(stats: dict) -> str:
     return "\n".join(lines)
 
 
-def generate_report(conn: sqlite3.Connection, output_path: str, json_path: str | None = None) -> dict:
+def generate_report(conn: sqlite3.Connection, output_path: str, json_path: str | None = None,
+                    html_path: str | None = None) -> dict:
     stats = calculate_stats(conn)
     content = format_report(stats)
 
@@ -162,6 +163,12 @@ def generate_report(conn: sqlite3.Connection, output_path: str, json_path: str |
     if json_path:
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump(stats, f, ensure_ascii=False, indent=2)
+
+    if html_path:
+        # imported here because html_report imports helpers from this file
+        from src.html_report import format_html
+        with open(html_path, 'w', encoding='utf-8') as f:
+            f.write(format_html(stats))
 
     print(content)
     return stats

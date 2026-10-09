@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from src.analyzer import calculate_stats, format_money, format_report  # noqa: E402
 from src.database import InvalidCSVError, create_database, insert_sales  # noqa: E402
 from src.csv_generator import generate_sample_csv  # noqa: E402
+from src.html_report import format_html  # noqa: E402
 import main  # noqa: E402
 
 HEADER = ["date", "product", "category", "quantity", "price", "seller", "region"]
@@ -137,6 +138,16 @@ class TestStats(FolderTestCase):
         conn = create_database(":memory:")
         text = format_report(calculate_stats(conn))
         self.assertIn("No sales", text)
+        self.assertIn("No sales", format_html(calculate_stats(conn)))
+
+    def test_html_escapes_names(self):
+        self.write_csv([["2024-01-10", "<b>Pen</b>", "Office", "1", "2", "Ana & Bia", "South"]])
+        conn = create_database(":memory:")
+        insert_sales(conn, self.csv)
+        page = format_html(calculate_stats(conn))
+        self.assertIn("&lt;b&gt;Pen&lt;/b&gt;", page)
+        self.assertIn("Ana &amp; Bia", page)
+        self.assertNotIn("<b>Pen</b>", page)
 
 
 class TestGenerator(FolderTestCase):
@@ -152,11 +163,15 @@ class TestMain(FolderTestCase):
     def test_full_run(self):
         output = os.path.join(self.folder.name, "out")
         with redirect_stdout(StringIO()):
-            code = main.main(["--csv", self.csv, "--output", output, "--generate", "50", "--seed", "1", "--json"])
+            code = main.main(["--csv", self.csv, "--output", output, "--generate", "50", "--seed", "1", "--json", "--html"])
         self.assertEqual(code, 0)
         self.assertTrue(os.path.exists(os.path.join(output, "report.txt")))
         with open(os.path.join(output, "report.json"), encoding="utf-8") as f:
             self.assertEqual(json.load(f)["summary"]["total_sales"], 50)
+        with open(os.path.join(output, "report.html"), encoding="utf-8") as f:
+            page = f.read()
+        self.assertIn("<title>Sales report</title>", page)
+        self.assertIn("Revenue by month", page)
 
     def test_invalid_csv_returns_error(self):
         self.write_csv([["x"]], header=["wrong_column"])

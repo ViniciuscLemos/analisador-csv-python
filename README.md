@@ -27,6 +27,7 @@ Options:
 python main.py --csv my_sales.csv          # use another file
 python main.py --generate 1000 --seed 42   # generate a new CSV
 python main.py --json                      # also save it as JSON
+python main.py --html                      # also save a page with charts
 ```
 
 ## What the report looks like
@@ -37,6 +38,10 @@ A run with 200 generated sales (`python main.py --generate 200 --seed 3`):
   <img src="docs/screenshot-run.png" alt="Importing the CSV and the start of the report" width="49%">
   <img src="docs/screenshot-report.png" alt="Seller ranking, sales by region and the monthly chart" width="49%">
 </p>
+
+With `--html` the same report also goes to `output/report.html`, a single page with the charts (plain HTML and CSS, no library, so it opens offline). It follows the system's dark mode too.
+
+![The HTML report with revenue by month, category, region and the rankings](docs/screenshot-html.png)
 
 ## CSV format
 
@@ -60,4 +65,5 @@ main.py
 src/database.py        creates the database and imports the CSV
 src/analyzer.py        queries and building the report
 src/csv_generator.py   generates the sample data
+src/html_report.py     the HTML version of the report
 ```
