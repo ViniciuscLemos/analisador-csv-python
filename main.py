@@ -28,6 +28,17 @@ def read_args(argv=None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def show(path: str) -> str:
+    """Path to print: relative when it's inside the current folder, so the
+    output doesn't fill up with long absolute paths."""
+    full = os.path.abspath(path)
+    try:
+        relative = os.path.relpath(full)
+    except ValueError:  # another drive on Windows
+        return full
+    return full if relative.startswith("..") else relative
+
+
 def main(argv=None) -> int:
     # On Windows, with the output redirected to a file (python main.py > log.txt),
     # Python uses cp1252 and breaks on the chart's █
@@ -51,13 +62,13 @@ def main(argv=None) -> int:
         quantity = args.generate or 200
         print(f"\n[1/4] Generating a sample CSV with {quantity} sales...")
         generate_sample_csv(csv_file, quantity, seed=args.seed)
-        print(f"      CSV created at: {csv_file}")
+        print(f"      CSV created at: {show(csv_file)}")
     else:
-        print(f"\n[1/4] Using existing CSV: {csv_file}")
+        print(f"\n[1/4] Using existing CSV: {show(csv_file)}")
 
     print("\n[2/4] Creating the SQLite database...")
     conn = create_database(db_file)
-    print(f"      Database created at: {db_file}")
+    print(f"      Database created at: {show(db_file)}")
 
     try:
         print("\n[3/4] Importing the CSV data into the database...")
@@ -80,9 +91,9 @@ def main(argv=None) -> int:
         report_file = os.path.join(args.output, "report.txt")
         json_file = os.path.join(args.output, "report.json") if args.json else None
         generate_report(conn, report_file, json_file)
-        print(f"      Report saved to: {report_file}")
+        print(f"      Report saved to: {show(report_file)}")
         if json_file:
-            print(f"      JSON saved to: {json_file}")
+            print(f"      JSON saved to: {show(json_file)}")
     finally:
         conn.close()
 

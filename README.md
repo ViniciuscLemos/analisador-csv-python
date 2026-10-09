@@ -31,48 +31,12 @@ python main.py --json                      # also save it as JSON
 
 ## What the report looks like
 
-A piece of the report with 50 generated sales (`python main.py --generate 50 --seed 1`):
+A run with 200 generated sales (`python main.py --generate 200 --seed 3`):
 
-```
--------------------------------------------------------
-  OVERVIEW
--------------------------------------------------------
-  Period:             2024-01-08 to 2024-12-22
-  Total sales:        50
-  Total revenue:      $142,855.02
-  Average ticket:     $2,857.10
-  Biggest sale:       $23,651.90
-  Smallest sale:      $28.16
-
--------------------------------------------------------
-  SELLER RANKING
--------------------------------------------------------
-  Seller            Sales          Revenue   Share
-  ------------------------------------------------
-  Elisa Ramos          11       $38,172.04   26.7%
-  Diego Costa          14       $37,728.42   26.4%
-  Ana Lima             11       $24,965.37   17.5%
-  Bruno Silva           6       $22,797.23   16.0%
-  Carla Souza           8       $19,191.96   13.4%
-
--------------------------------------------------------
-  MONTHLY TREND
--------------------------------------------------------
-  Jan/2024        $20,512.20  ██████████████
-  Feb/2024        $25,897.73  █████████████████
-  Mar/2024         $2,235.17  ██
-  Apr/2024        $19,930.72  █████████████
-  May/2024        $29,631.84  ████████████████████
-  Jun/2024           $617.17  █
-  Jul/2024        $19,101.35  █████████████
-  Aug/2024         $1,793.67  █
-  Sep/2024         $2,231.26  ██
-  Oct/2024        $16,277.86  ███████████
-  Nov/2024         $2,675.37  ██
-  Dec/2024         $1,950.68  █
-```
-
-The full report also has sales by category, by region and the top 5 products.
+<p>
+  <img src="docs/screenshot-run.png" alt="Importing the CSV and the start of the report" width="49%">
+  <img src="docs/screenshot-report.png" alt="Seller ranking, sales by region and the monthly chart" width="49%">
+</p>
 
 ## CSV format
 
