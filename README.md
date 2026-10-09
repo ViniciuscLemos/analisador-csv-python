@@ -1,99 +1,99 @@
-# Analisador de CSV de vendas
+# Sales CSV Analyzer
 
-![Testes](https://github.com/ViniciuscLemos/analisador-csv-python/actions/workflows/testes.yml/badge.svg)
+![Tests](https://github.com/ViniciuscLemos/csv-analyzer-python/actions/workflows/tests.yml/badge.svg)
 
-Programa em Python que lê um CSV de vendas, joga os dados num banco SQLite e gera um relatório com as consultas em SQL.
+A Python program that reads a sales CSV, loads the data into a SQLite database and generates a report with the queries written in SQL.
 
-Não precisa instalar nada além do Python (3.10+).
+You don't need to install anything besides Python (3.10+).
 
-## Rodando
+## Running
 
 ```bash
 python main.py
 ```
 
-Se não existir um CSV em `data/vendas.csv`, ele gera um com 200 vendas inventadas. O relatório fica em `output/relatorio.txt` e também aparece no terminal.
+If there's no CSV at `data/sales.csv`, it generates one with 200 made-up sales. The report goes to `output/report.txt` and also shows up in the terminal.
 
-O relatório traz:
-- o total vendido e o ticket médio
-- as vendas por categoria e por região
-- os produtos mais vendidos
-- o ranking dos vendedores
-- um gráfico simples, feito de texto, com a receita de cada mês
+The report has:
+- total revenue and average ticket
+- sales by category and by region
+- the best-selling products
+- the seller ranking
+- a simple text chart with the revenue for each month
 
-Opções:
+Options:
 
 ```bash
-python main.py --csv minhas_vendas.csv   # usar outro arquivo
-python main.py --gerar 1000 --seed 42    # gerar um CSV novo
-python main.py --json                    # salvar também em JSON
+python main.py --csv my_sales.csv          # use another file
+python main.py --generate 1000 --seed 42   # generate a new CSV
+python main.py --json                      # also save it as JSON
 ```
 
-## Como fica o relatório
+## What the report looks like
 
-Um pedaço do relatório com 50 vendas geradas (`python main.py --gerar 50 --seed 1`):
+A piece of the report with 50 generated sales (`python main.py --generate 50 --seed 1`):
 
 ```
 -------------------------------------------------------
-  RESUMO GERAL
+  OVERVIEW
 -------------------------------------------------------
-  Período:            2024-01-08 a 2024-12-22
-  Total de vendas:    50
-  Receita total:      R$ 142.855,02
-  Ticket médio:       R$ 2.857,10
-  Maior venda:        R$ 23.651,90
-  Menor venda:        R$ 28,16
+  Period:             2024-01-08 to 2024-12-22
+  Total sales:        50
+  Total revenue:      $142,855.02
+  Average ticket:     $2,857.10
+  Biggest sale:       $23,651.90
+  Smallest sale:      $28.16
 
 -------------------------------------------------------
-  RANKING DE VENDEDORES
+  SELLER RANKING
 -------------------------------------------------------
-  Vendedor         Vendas          Receita   Part.
+  Seller            Sales          Revenue   Share
   ------------------------------------------------
-  Elisa Ramos          11     R$ 38.172,04   26,7%
-  Diego Costa          14     R$ 37.728,42   26,4%
-  Ana Lima             11     R$ 24.965,37   17,5%
-  Bruno Silva           6     R$ 22.797,23   16,0%
-  Carla Souza           8     R$ 19.191,96   13,4%
+  Elisa Ramos          11       $38,172.04   26.7%
+  Diego Costa          14       $37,728.42   26.4%
+  Ana Lima             11       $24,965.37   17.5%
+  Bruno Silva           6       $22,797.23   16.0%
+  Carla Souza           8       $19,191.96   13.4%
 
 -------------------------------------------------------
-  EVOLUÇÃO MENSAL
+  MONTHLY TREND
 -------------------------------------------------------
-  Jan/2024      R$ 20.512,20  ██████████████
-  Fev/2024      R$ 25.897,73  █████████████████
-  Mar/2024       R$ 2.235,17  ██
-  Abr/2024      R$ 19.930,72  █████████████
-  Mai/2024      R$ 29.631,84  ████████████████████
-  Jun/2024         R$ 617,17  █
-  Jul/2024      R$ 19.101,35  █████████████
-  Ago/2024       R$ 1.793,67  █
-  Set/2024       R$ 2.231,26  ██
-  Out/2024      R$ 16.277,86  ███████████
-  Nov/2024       R$ 2.675,37  ██
-  Dez/2024       R$ 1.950,68  █
+  Jan/2024        $20,512.20  ██████████████
+  Feb/2024        $25,897.73  █████████████████
+  Mar/2024         $2,235.17  ██
+  Apr/2024        $19,930.72  █████████████
+  May/2024        $29,631.84  ████████████████████
+  Jun/2024           $617.17  █
+  Jul/2024        $19,101.35  █████████████
+  Aug/2024         $1,793.67  █
+  Sep/2024         $2,231.26  ██
+  Oct/2024        $16,277.86  ███████████
+  Nov/2024         $2,675.37  ██
+  Dec/2024         $1,950.68  █
 ```
 
-O relatório completo também traz as vendas por categoria, por região e os 5 produtos mais vendidos.
+The full report also has sales by category, by region and the top 5 products.
 
-## Formato do CSV
+## CSV format
 
 ```
-data,produto,categoria,quantidade,preco,vendedor,regiao
-2024-03-10,Notebook,Eletrônicos,1,2500.00,Ana Lima,Sudeste
+date,product,category,quantity,price,seller,region
+2024-03-10,Laptop,Electronics,1,2500.00,Ana Lima,Southeast
 ```
 
-A data precisa estar no formato `AAAA-MM-DD`, e o preço pode ser escrito com ponto ou com vírgula. O separador pode ser vírgula ou ponto e vírgula, que é como o Excel em português salva o arquivo. Se alguma linha estiver errada, o programa pula essa linha e avisa qual foi e por quê.
+The date has to be in the `YYYY-MM-DD` format, and the price can be written with a dot or a comma. The separator can be a comma or a semicolon, which is how Excel saves the file in some languages. If a row is wrong, the program skips it and tells you which one and why.
 
-## Testes
+## Tests
 
 ```bash
 python -m unittest discover -s tests
 ```
 
-## Arquivos
+## Files
 
 ```
 main.py
-src/banco.py         cria o banco e importa o CSV
-src/analisador.py    consultas e montagem do relatório
-src/gerador_csv.py   gera os dados de exemplo
+src/database.py        creates the database and imports the CSV
+src/analyzer.py        queries and building the report
+src/csv_generator.py   generates the sample data
 ```

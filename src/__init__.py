@@ -1,2 +1,2 @@
-# Torna a pasta src um pacote Python
-# Permite importar com: from src.banco import criar_banco
+# Makes the src folder a Python package
+# so you can import with: from src.database import create_database

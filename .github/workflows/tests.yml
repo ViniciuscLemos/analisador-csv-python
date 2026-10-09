@@ -1,11 +1,11 @@
-name: Testes
+name: Tests
 
 on:
   push:
   pull_request:
 
 jobs:
-  testes:
+  tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Testes unitários
+      - name: Unit tests
         run: python -m unittest discover -s tests -v
-      - name: Execução completa
-        run: python main.py --gerar 100 --seed 1 --json
+      - name: Full run
+        run: python main.py --generate 100 --seed 1 --json

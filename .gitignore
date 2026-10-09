@@ -2,5 +2,5 @@ __pycache__/
 *.pyc
 .env
 data/*.db
-data/vendas.csv
+data/sales.csv
 output/
